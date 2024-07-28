@@ -9,4 +9,4 @@ config :ms2ex_file, :myxql,
 
 config :ms2ex_file, :redix, host: System.get_env("RD_HOST") || "localhost"
 
-config :ms2ex_file, :ms2ex, metadata_path: "~/Projects/ms2ex/lib/ms2ex/metadata/"
+config :ms2ex_file, :ms2ex, metadata_path: System.get_env("MD_PATH") || "/path/to/metadata/"

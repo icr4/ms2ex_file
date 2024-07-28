@@ -27,6 +27,3 @@ ms2ex_file-*.tar
 
 # Ignore structs modules
 /lib/ms2ex_file/structs/*
-
-# Ignore redis dumps
-/dump/*
