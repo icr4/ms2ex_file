@@ -1,9 +1,6 @@
 # The directory Mix will write compiled artifacts to.
 /_build/
 
-# The directory where Mix will write output structs
-/lib/ms2ex_file/structs/*
-
 # If you run "mix test --cover", coverage assets end up here.
 /cover/
 
