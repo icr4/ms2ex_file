@@ -4,7 +4,9 @@ defmodule Ms2exFile.Structs do
 
   def create(table, fields) do
     path = @structs_path <> table <> ".ex"
-    {primary, fields} = fields_list(fields)
+    primary = primary_field(fields)
+    fields = fields_list(fields)
+
     name = module_name(table)
 
     File.write!(path, module(name, fields, primary))
@@ -16,48 +18,67 @@ defmodule Ms2exFile.Structs do
     |> Enum.each(&File.rm!(@structs_path <> &1))
   end
 
+  #
+  # Module
+  #
+
   def module_name(name) do
     name |> String.replace("-", "_") |> Macro.camelize() |> then(&"#{@namespace}.#{&1}")
-  end
-
-  def field_name(field),
-    do: field |> Macro.underscore() |> then(&":#{&1}")
-
-  def fields_list(fields) do
-    fields =
-      fields
-      |> Enum.map(fn [name, _type, _, primary, _, _] ->
-        %{name: field_name(name), primary: primary == "PRI"}
-      end)
-
-    primary = Enum.find(fields, & &1.primary).name
-    fields = fields |> Enum.map(& &1.name) |> Enum.join(", ")
-
-    {primary, fields}
-  end
-
-  def build(row, table) do
-    struct = Module.safe_concat([Ms2exFile.Structs.module_name(table)])
-    fields = struct.__struct__() |> Map.keys() |> Enum.reject(&(&1 == :__struct__))
-
-    row =
-      row
-      |> Enum.with_index()
-      |> Enum.reduce(%{}, fn {row, i}, map ->
-        field = Enum.at(fields, i)
-        Map.put(map, field, row)
-      end)
-
-    struct(struct, row)
   end
 
   defp module(name, fields, primary) do
     """
     defmodule #{name} do
-      defstruct [#{fields}]
+      defstruct [#{Enum.join(fields, ", ")}]
 
-      def id(), do: #{primary}
+      def id(), do: :#{primary}
     end
     """
+  end
+
+  #
+  # Fields
+  #
+
+  def field_name([name, _type, _, _primary, _, _]),
+    do: field_name(name) |> then(&":#{&1}")
+
+  def field_name(field) when is_binary(field),
+    do: field |> Macro.underscore()
+
+  def fields_list(fields) do
+    fields |> Enum.map(&field_name(&1))
+  end
+
+  def primary_field(fields) do
+    fields
+    |> Enum.find(fn [_, _, _, primary, _, _] ->
+      primary == "PRI"
+    end)
+    |> hd()
+    |> field_name()
+  end
+
+  #
+  # Builder
+  #
+
+  def build(row, columns, table) do
+    struct = Module.safe_concat([Ms2exFile.Structs.module_name(table)])
+    fields = fields_list(columns)
+
+    row =
+      row
+      |> Enum.with_index()
+      |> Enum.reduce(%{}, fn {row, i}, map ->
+        field = Enum.at(fields, i) |> String.to_atom()
+        Map.put(map, field, row)
+      end)
+
+    struct = struct(struct, row)
+    id_key = struct.__struct__.id()
+    id = Map.get(struct, id_key)
+
+    {id, struct}
   end
 end

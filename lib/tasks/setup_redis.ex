@@ -2,44 +2,33 @@ defmodule Mix.Tasks.Setup.Redis do
   use Mix.Task
 
   alias Ms2exFile.Structs
+  alias Ms2exFile.MySql
+  alias Ms2exFile.Redis
 
-  @repo :myxql
   @requirements ["app.start"]
 
   @impl Mix.Task
   def run(_args) do
     Application.ensure_all_started(:myxql)
 
-    Redix.command!(:redix, ["flushdb"])
-    {:ok, %MyXQL.Result{rows: tables}} = MyXQL.query(@repo, "SHOW TABLES")
+    Redis.flush()
 
-    tables
-    |> Enum.each(fn [t] ->
-      set = t |> Structs.module_name() |> Macro.underscore()
+    MySql.list_tables()
+    |> Enum.each(fn [table] ->
+      set = table |> Structs.module_name() |> Macro.underscore()
+      count = MySql.count(table)
 
-      {:ok, %MyXQL.Result{rows: rows, num_rows: count}} =
-        MyXQL.query(@repo, "SELECT * FROM `#{t}`")
+      IO.puts("[#{table}] Storing #{count} records from MySQL into Redis...")
 
-      IO.inspect("[#{t}::#{set}] Read #{count} record from MySQL")
-
-      store_values(set, t, rows)
-
-      count = Redix.command!(:redix, ["SCARD", set])
-      IO.inspect("[#{t}::#{set}] Cached #{count} results")
+      MySql.paginate(table, 0, fn columns, rows ->
+        store_values(set, table, columns, rows)
+      end)
     end)
   end
 
-  defp store_values(set, table, values) do
-    pipeline = values |> Enum.map(&build_command(set, table, &1))
-    Redix.pipeline!(:redix, pipeline)
-  end
-
-  defp build_command(set, table, value) do
-    value = Structs.build(value, table)
-    id_key = value.__struct__.id()
-    id = Map.get(value, id_key)
-    value = "#{id}:" <> :erlang.term_to_binary(value)
-
-    ["SADD", set, value]
+  defp store_values(set, table, columns, values) do
+    values
+    |> Enum.map(&Structs.build(&1, columns, table))
+    |> Redis.insert_structs(set)
   end
 end
