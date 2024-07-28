@@ -18,11 +18,13 @@ defmodule Mix.Tasks.Setup.Redis do
       set = table |> Structs.module_name() |> Macro.underscore()
       count = MySql.count(table)
 
-      IO.puts("[#{table}] Storing #{count} records from MySQL into Redis...")
+      IO.puts("[#{table}:#{set}] Reading #{count} records from MySQL...")
 
       MySql.paginate(table, 0, fn columns, rows ->
         store_values(set, table, columns, rows)
       end)
+
+      IO.puts("[#{table}:#{set}] Cached #{Redis.count_structs(set)} into Redis")
     end)
   end
 

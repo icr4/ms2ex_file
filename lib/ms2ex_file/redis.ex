@@ -4,6 +4,10 @@ defmodule Ms2exFile.Redis do
   def flush(),
     do: Redix.command!(@repo, ["flushdb"])
 
+  def count_structs(set) do
+    Redix.command!(@repo, ["KEYS", "#{set}:*"]) |> Enum.count()
+  end
+
   def insert_structs(structs, set) do
     pipeline =
       structs
