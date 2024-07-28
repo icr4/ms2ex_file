@@ -38,6 +38,8 @@ defmodule Mix.Tasks.Setup.Redis do
     value = Structs.build(value, table)
     id_key = value.__struct__.id()
     id = Map.get(value, id_key)
-    ["SADD", set, id, :erlang.term_to_binary(value)]
+    value = "#{id}:" <> :erlang.term_to_binary(value)
+
+    ["SADD", set, value]
   end
 end
