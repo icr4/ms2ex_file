@@ -20,7 +20,9 @@ defmodule Mix.Tasks.Setup.Redis do
 
       IO.puts("[#{table}:#{set}] Reading #{count} records from MySQL...")
 
-      MySql.paginate(table, 0, fn columns, rows ->
+      primaries = MySql.get_primaries_key(table)
+
+      MySql.paginate(table, primaries, 0, fn columns, rows ->
         store_values(set, table, columns, rows)
       end)
 

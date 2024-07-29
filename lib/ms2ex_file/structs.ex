@@ -4,12 +4,12 @@ defmodule Ms2exFile.Structs do
 
   def create(table, fields) do
     path = @structs_path <> table <> ".ex"
-    primary = primary_field(fields)
+    primaries = primary_fields(fields)
     fields = fields_list(fields)
 
     name = module_name(table)
 
-    File.write!(path, module(name, fields, primary))
+    File.write!(path, module(name, fields, primaries))
   end
 
   def clean() do
@@ -26,12 +26,12 @@ defmodule Ms2exFile.Structs do
     name |> String.replace("-", "_") |> Macro.camelize() |> then(&"#{@namespace}.#{&1}")
   end
 
-  defp module(name, fields, primary) do
+  defp module(name, fields, primaries) do
     """
     defmodule #{name} do
       defstruct [#{Enum.join(fields, ", ")}]
 
-      def id(), do: :#{primary}
+      def ids(), do: [#{primaries}]
     end
     """
   end
@@ -50,13 +50,13 @@ defmodule Ms2exFile.Structs do
     fields |> Enum.map(&field_name(&1))
   end
 
-  def primary_field(fields) do
+  def primary_fields(fields) do
     fields
-    |> Enum.find(fn [_, _, _, primary, _, _] ->
+    |> Enum.filter(fn [_, _, _, primary, _, _] ->
       primary == "PRI"
     end)
-    |> hd()
-    |> field_name()
+    |> fields_list()
+    |> Enum.join(", ")
   end
 
   #
@@ -76,8 +76,13 @@ defmodule Ms2exFile.Structs do
       end)
 
     struct = struct(struct, row)
-    id_key = struct.__struct__.id()
-    id = Map.get(struct, id_key)
+
+    id =
+      Enum.reduce(struct.__struct__.ids(), "", fn key, id ->
+        if id == "",
+          do: Map.get(struct, key),
+          else: "#{id}_#{Map.get(struct, key)}"
+      end)
 
     {id, struct}
   end

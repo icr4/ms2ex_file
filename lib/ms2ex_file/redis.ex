@@ -20,13 +20,7 @@ defmodule Ms2exFile.Redis do
 
   def dump() do
     [_cmd, dir] = Redix.command!(@repo, ["config", "get", "dir"])
-
-    File.rm("#{dir}/dump.rdb")
-    File.rm("#{dir}/dump.rdb.gz")
-
     Redix.command!(:redix, ["save"])
-
-    System.cmd("gzip", ["#{dir}/dump.rdb"])
 
     dir
   end

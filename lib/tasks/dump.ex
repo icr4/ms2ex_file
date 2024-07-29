@@ -16,7 +16,7 @@ defmodule Mix.Tasks.Dump do
     IO.puts("Dumping redis database...")
     dir = Redis.dump()
 
-    IO.puts("Dump compressed: #{dir}")
+    IO.puts("Dump saved: #{dir}")
   end
 
   defp ms2ex_path(), do: Application.fetch_env!(:ms2ex_file, :ms2ex)[:metadata_path]
