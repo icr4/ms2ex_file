@@ -78,11 +78,9 @@ defmodule Ms2exFile.Structs do
     struct = struct(struct, row)
 
     id =
-      Enum.reduce(struct.__struct__.ids(), "", fn key, id ->
-        if id == "",
-          do: Map.get(struct, key),
-          else: "#{id}_#{Map.get(struct, key)}"
-      end)
+      struct.__struct__.ids()
+      |> Enum.map(&Map.get(struct, &1))
+      |> Enum.join("_")
 
     {id, struct}
   end
