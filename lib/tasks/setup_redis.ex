@@ -1,9 +1,9 @@
 defmodule Mix.Tasks.Setup.Redis do
   use Mix.Task
 
-  alias Ms2exFile.Structs
   alias Ms2exFile.MySql
   alias Ms2exFile.Redis
+  alias Ms2exFile.Data
 
   @requirements ["app.start"]
 
@@ -14,25 +14,26 @@ defmodule Mix.Tasks.Setup.Redis do
     Redis.flush()
 
     MySql.list_tables()
-    |> Enum.each(fn [table] ->
-      set = table |> Structs.module_name() |> Macro.underscore()
+    |> Enum.map(fn [table] ->
       count = MySql.count(table)
 
-      IO.puts("[#{table}:#{set}] Reading #{count} records from MySQL...")
+      IO.puts("[#{table}] Reading #{count} records from MySQL...")
 
-      primaries = MySql.get_primaries_key(table)
+      primaries = MySql.get_primaries_keys(table)
 
-      MySql.paginate(table, primaries, 0, fn columns, rows ->
-        store_values(set, table, columns, rows)
-      end)
-
-      IO.puts("[#{table}:#{set}] Cached #{Redis.count_structs(set)} into Redis")
+      data = MySql.paginate(table, primaries, 0)
+      {table, data}
+    end)
+    |> Map.new()
+    |> Data.process()
+    |> Enum.each(fn {table, data} ->
+      IO.inspect("[#{table}] Caching data into redis")
+      store_values(table, data)
     end)
   end
 
-  defp store_values(set, table, columns, values) do
-    values
-    |> Enum.map(&Structs.build(&1, columns, table))
-    |> Redis.insert_structs(set)
+  defp store_values(table, data) do
+    set = Macro.underscore(table)
+    Redis.insert_sets(set, data)
   end
 end

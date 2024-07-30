@@ -8,5 +8,3 @@ config :ms2ex_file, :myxql,
   port: System.get_env("DB_PORT") || 3308
 
 config :ms2ex_file, :redix, host: System.get_env("RD_HOST") || "localhost"
-
-config :ms2ex_file, :ms2ex, metadata_path: System.get_env("MD_PATH") || "/path/to/metadata/"

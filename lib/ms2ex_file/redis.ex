@@ -4,24 +4,13 @@ defmodule Ms2exFile.Redis do
   def flush(),
     do: Redix.command!(@repo, ["flushdb"])
 
-  def count_structs(set) do
-    Redix.command!(@repo, ["KEYS", "#{set}:*"]) |> Enum.count()
-  end
-
-  def insert_structs(structs, set) do
+  def insert_sets(set, data) do
     pipeline =
-      structs
-      |> Enum.map(fn {id, struct} ->
-        ["SET", "#{set}:#{id}", :erlang.term_to_binary(struct)]
+      data
+      |> Enum.map(fn map ->
+        ["SET", "#{set}:#{map.redis_id}", :erlang.term_to_binary(map)]
       end)
 
     Redix.pipeline!(@repo, pipeline)
-  end
-
-  def dump() do
-    [_cmd, dir] = Redix.command!(@repo, ["config", "get", "dir"])
-    Redix.command!(:redix, ["save"])
-
-    dir
   end
 end
