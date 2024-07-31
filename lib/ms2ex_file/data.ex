@@ -3,7 +3,8 @@ defmodule Ms2exFile.Data do
     :region_skill => 821_242_714,
     :trigger_skill => 737_806_629,
     :bounding => 1_539_875_768,
-    :spawn_point_pc => 476_587_788
+    :spawn_point_pc => 476_587_788,
+    :spawn_point_npc => 207_007_606
   }
 
   def process(tables) do
@@ -54,9 +55,17 @@ defmodule Ms2exFile.Data do
           entity.block[:!] == @map_entity[:spawn_point_pc] && entity.x_block == map.x_block
         end)
 
+      npc_spawns =
+        tables
+        |> Map.get("map-entity")
+        |> Enum.filter(fn entity ->
+          entity.block[:!] == @map_entity[:spawn_point_npc] && entity.x_block == map.x_block
+        end)
+
       map
       |> Map.put(:boundings, boundings)
       |> Map.put(:pc_spawns, pc_spawns)
+      |> Map.put(:npc_spawns, npc_spawns)
     end)
     |> then(&{t, &1})
   end

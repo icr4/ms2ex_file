@@ -8,12 +8,21 @@ defmodule Mix.Tasks.Setup.Redis do
   @requirements ["app.start"]
 
   @impl Mix.Task
-  def run(_args) do
+  def run(args) do
     Application.ensure_all_started(:myxql)
+    tables = get_arg(args, :t)
 
-    Redis.flush()
+    tables =
+      if length(tables) > 0 do
+        tables
+      else
+        Redis.flush()
+        MySql.list_tables()
+      end
 
-    MySql.list_tables()
+    IO.puts("Processing #{inspect(tables)}")
+
+    tables
     |> Enum.map(fn [table] ->
       count = MySql.count(table)
 
@@ -35,5 +44,9 @@ defmodule Mix.Tasks.Setup.Redis do
   defp store_values(table, data) do
     set = Macro.underscore(table)
     Redis.insert_sets(set, data)
+  end
+
+  defp get_arg(args, :t) do
+    (args -- ["-t"]) |> Enum.map(fn t -> [t] end)
   end
 end
