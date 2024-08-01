@@ -7,13 +7,23 @@ defmodule Ms2exFile.Parser.Map do
       pc_spawns = get_pc_spawns(map, tables)
       npc_spawns = get_npcs_spawns(map, tables)
       npcs = get_npcs(npc_spawns, tables)
+      portals = get_portals(map, tables)
 
       map
       |> Map.put(:boundings, boundings)
       |> Map.put(:pc_spawns, pc_spawns)
       |> Map.put(:npcs, npcs)
+      |> Map.put(:portals, portals)
     end)
     |> then(&{t, &1})
+  end
+
+  defp get_portals(map, tables) do
+    tables
+    |> Map.get("map-entity")
+    |> Enum.filter(fn entity ->
+      entity.block[:!] == @map_entity[:portal] && entity.x_block == map.x_block
+    end)
   end
 
   defp get_map_boundings(map, tables) do
