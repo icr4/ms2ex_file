@@ -24,6 +24,7 @@ defmodule Ms2exFile.Parser.Map do
     |> Enum.filter(fn entity ->
       entity.block[:!] == @map_entity[:portal] && entity.x_block == map.x_block
     end)
+    |> Enum.map(& &1.block)
   end
 
   defp get_map_boundings(map, tables) do
@@ -32,6 +33,7 @@ defmodule Ms2exFile.Parser.Map do
     |> Enum.filter(fn entity ->
       entity.block[:!] == @map_entity[:bounding] && entity.x_block == map.x_block
     end)
+    |> Enum.map(& &1.block)
   end
 
   defp get_pc_spawns(map, tables) do
@@ -40,6 +42,7 @@ defmodule Ms2exFile.Parser.Map do
     |> Enum.filter(fn entity ->
       entity.block[:!] == @map_entity[:spawn_point_pc] && entity.x_block == map.x_block
     end)
+    |> Enum.map(& &1.block)
   end
 
   defp get_npcs_spawns(map, tables) do
@@ -48,19 +51,20 @@ defmodule Ms2exFile.Parser.Map do
     |> Enum.filter(fn entity ->
       entity.block[:!] == @map_entity[:spawn_point_npc] && entity.x_block == map.x_block
     end)
+    |> Enum.map(& &1.block)
   end
 
   defp get_npcs(npc_spawns, tables) do
     npc_spawns
     |> Enum.flat_map(fn entity ->
-      Enum.flat_map(entity.block.npc_list, fn %{count: count, npc_id: id} ->
+      Enum.flat_map(entity.npc_list, fn %{count: count, npc_id: id} ->
         Enum.map(1..count, fn _ ->
           {type, metadata} = try_get_npc_meta(id, tables)
           animation = try_get_npc_animation(metadata[:model][:name], tables)
 
           Map.new()
           |> Map.put(:id, id)
-          |> Map.put(:spawn, normalize_npc_spawn(entity.block))
+          |> Map.put(:spawn, normalize_npc_spawn(entity))
           |> Map.put(:type, type)
           |> Map.put(:metadata, metadata)
           |> Map.put(:animation, animation)

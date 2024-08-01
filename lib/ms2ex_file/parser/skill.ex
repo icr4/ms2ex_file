@@ -30,5 +30,6 @@ defmodule Ms2exFile.Parser.Skill do
     |> Enum.filter(fn entity ->
       entity.block[:!] == @map_entity[:region_skill] && entity.block.skill_id == skill.id
     end)
+    |> Enum.map(& &1.block)
   end
 end
