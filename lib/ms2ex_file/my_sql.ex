@@ -2,7 +2,7 @@ defmodule Ms2exFile.MySql do
   @repo :myxql
   @page_size 2000
 
-  alias Ms2exFile.Parser
+  alias Ms2exFile.Helper
 
   def list_tables() do
     {:ok, %MyXQL.Result{rows: tables}} = MyXQL.query(@repo, "SHOW TABLES")
@@ -32,7 +32,7 @@ defmodule Ms2exFile.MySql do
 
   def get_primaries_key_for_set(primaries) do
     primaries
-    |> Enum.map(&Parser.atomize_key(hd(&1)))
+    |> Enum.map(&Helper.atomize_key(hd(&1)))
   end
 
   def count(table) do
@@ -63,8 +63,8 @@ defmodule Ms2exFile.MySql do
         |> Enum.with_index()
         |> Enum.map(fn {data, i} ->
           {
-            Parser.atomize_key(Enum.at(columns, i)),
-            Parser.atomize_map_keys(data)
+            Helper.atomize_key(Enum.at(columns, i)),
+            Helper.atomize_map_keys(data)
           }
         end)
         |> Map.new()

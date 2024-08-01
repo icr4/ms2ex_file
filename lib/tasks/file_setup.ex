@@ -1,9 +1,9 @@
-defmodule Mix.Tasks.Setup.Redis do
+defmodule Mix.Tasks.File.Setup do
   use Mix.Task
 
   alias Ms2exFile.MySql
   alias Ms2exFile.Redis
-  alias Ms2exFile.Data
+  alias Ms2exFile.Parser
 
   @requirements ["app.start"]
 
@@ -34,7 +34,7 @@ defmodule Mix.Tasks.Setup.Redis do
       {table, data}
     end)
     |> Map.new()
-    |> Data.process()
+    |> Parser.process()
     |> Enum.each(fn {table, data} ->
       IO.inspect("[#{table}] Caching data into redis")
       store_values(table, data)
