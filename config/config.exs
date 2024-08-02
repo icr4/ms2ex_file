@@ -1,7 +1,7 @@
 import Config
 
 config :ms2ex_file,
-  mysql_uri: "mysql://root:password@admin.taakagency.it:3308/maple_data",
+  mysql_uri: "mysql://root:password@localhost:3306/maple_data",
   redis_uri: "redis://localhost"
 
 config :myxql, :json_library, :json
