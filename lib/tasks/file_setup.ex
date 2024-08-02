@@ -1,11 +1,13 @@
 defmodule Mix.Tasks.File.Setup do
+  @moduledoc "Reads game sources from MySQL db, parses them and writes to Redis"
+  @shortdoc "Ms2 Client Resources parser for Ms2ex"
+  @requirements ["app.start"]
+
   use Mix.Task
 
   alias Ms2exFile.MySql
   alias Ms2exFile.Redis
   alias Ms2exFile.Parser
-
-  @requirements ["app.start"]
 
   @impl Mix.Task
   def run(args) do

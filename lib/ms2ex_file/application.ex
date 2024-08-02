@@ -1,35 +1,23 @@
 defmodule Ms2exFile.Application do
-  # See https://hexdocs.pm/elixir/Application.html
-  # for more information on OTP Applications
-  @moduledoc false
-
   use Application
 
   @impl true
   def start(_type, _args) do
-    myxql = Application.fetch_env!(:ms2ex_file, :myxql)
-    redix = Application.fetch_env!(:ms2ex_file, :redix)
+    myxql =
+      Application.fetch_env!(:ms2ex_file, :mysql_uri)
+      |> Ms2exFile.MySql.parse_uri()
+      |> Keyword.put(:name, :myxql)
+
+    redix =
+      Application.fetch_env!(:ms2ex_file, :redis_uri)
+      |> Redix.URI.to_start_options()
+      |> Keyword.put(:name, :redix)
 
     children = [
-      {
-        MyXQL,
-        hostname: myxql[:hostname],
-        username: myxql[:username],
-        password: myxql[:password],
-        database: myxql[:database],
-        port: myxql[:port],
-        timeout: :infinity,
-        name: :myxql
-      },
-      {
-        Redix,
-        host: redix[:host], name: :redix
-      }
+      {MyXQL, myxql},
+      {Redix, redix}
     ]
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: Ms2exFile.Supervisor]
-    Supervisor.start_link(children, opts)
+    Supervisor.start_link(children, strategy: :one_for_one, name: Ms2exFile.Supervisor)
   end
 end

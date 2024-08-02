@@ -78,4 +78,37 @@ defmodule Ms2exFile.MySql do
 
     Enum.join(fields, "_")
   end
+
+  def parse_uri(uri) do
+    with %URI{} = uri <- URI.parse(uri),
+         false <- nil_uri?(uri),
+         {:scheme, "mysql"} <- {:scheme, uri.scheme},
+         {:credentials, [username, password]} <- {:credentials, String.split(uri.userinfo, ":")} do
+      database = String.replace(uri.path, "/", "")
+
+      [
+        hostname: uri.host,
+        username: username,
+        password: password,
+        database: database,
+        port: uri.port,
+        timeout: :infinity
+      ]
+    else
+      {:scheme, scheme} ->
+        raise "MySQL URI error: invalid scheme #{scheme}, only `mysql` is allowed"
+
+      {:credentials, _} ->
+        raise "MySQL URI error: invalid username or password, use `username:password` as format"
+
+      _ ->
+        raise "MySQL URI error: ensure `ms2ex_file` is properly configured in your `config.exs` file"
+    end
+  end
+
+  defp nil_uri?(%URI{} = uri) do
+    uri
+    |> Map.take([:scheme, :userinfo, :host, :port, :path])
+    |> Enum.any?(&is_nil(elem(&1, 1)))
+  end
 end
