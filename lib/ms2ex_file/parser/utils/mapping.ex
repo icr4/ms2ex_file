@@ -6,7 +6,8 @@ defmodule Ms2exFile.Parser.Utils.Mapping do
       :bounding => 1_539_875_768,
       :spawn_point_pc => 476_587_788,
       :spawn_point_npc => 207_007_606,
-      :portal => 19_716_277
+      :portal => 19_716_277,
+      :event_spawn_point_npc => 2_038_856_760
     }
   end
 end

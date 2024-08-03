@@ -48,7 +48,8 @@ defmodule Ms2exFile.Parser.Map do
     tables
     |> Map.get("map-entity")
     |> Enum.filter(fn entity ->
-      entity.block[:!] == @map_entity[:spawn_point_npc] && entity.x_block == map.x_block
+      entity.block[:!] in [@map_entity[:spawn_point_npc], @map_entity[:event_spawn_point_npc]] &&
+        entity.x_block == map.x_block
     end)
     |> Enum.map(& &1.block)
   end
