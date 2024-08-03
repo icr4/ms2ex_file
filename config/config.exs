@@ -4,8 +4,6 @@ config :ms2ex_file,
   mysql_uri: "mysql://root:password@localhost:3306/maple_data",
   redis_uri: "redis://localhost"
 
-config :myxql, :json_library, :json
-
 # hostname: System.get_env("DB_HOST") || "admin.taakagency.it",
 # username: System.get_env("DB_USER") || "root",
 # password: System.get_env("DB_PASS") || "password",

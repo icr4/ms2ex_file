@@ -23,7 +23,8 @@ defmodule Ms2exFile.MixProject do
   defp deps do
     [
       {:myxql, "~> 0.7.0"},
-      {:redix, "~> 1.1"}
+      {:redix, "~> 1.1"},
+      {:jason, "~> 1.4"}
     ]
   end
 end
