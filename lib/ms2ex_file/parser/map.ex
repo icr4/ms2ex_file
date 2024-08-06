@@ -63,7 +63,10 @@ defmodule Ms2exFile.Parser.Map do
       spawn_point =
         tables
         |> Map.get("map-entity")
-        |> Enum.find(&(&1.block[:!] == @map_entity[:region_spawn] && &1.block[:id] == spawn.id))
+        |> Enum.find(
+          &(&1.block[:!] == @map_entity[:region_spawn] && &1.x_block == map.x_block &&
+              &1.block[:id] == spawn.id)
+        )
 
       npc_ids =
         Enum.flat_map(spawn.tags, fn tag ->
@@ -76,8 +79,9 @@ defmodule Ms2exFile.Parser.Map do
 
       spawn
       |> Map.put(:npc_ids, npc_ids)
-      |> Map.put(:spawn_point, spawn_point[:block])
+      |> Map.put(:position, spawn_point[:block][:position])
+      |> Map.put(:rotation, spawn_point[:block][:rotation])
     end)
-    |> Enum.reject(&is_nil(&1.spawn_point))
+    |> Enum.reject(&is_nil(&1.position))
   end
 end
